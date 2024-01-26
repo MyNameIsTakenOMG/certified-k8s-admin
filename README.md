@@ -13,5 +13,17 @@
      - kubelet: listen to Kube apiserver for instructions and manage containers
      - kube-proxy: help communicate between services within the cluster
  - Docker vs ContainerD
-   - 
+ - ETCD
+ - Kube-API Server
+ - Kube Controller Manager
+ - Kube Scheduler
+ - Kubelet
+ - Kube Proxy
+ - Pods
+ - ReplicaSets
+ - Deployments
+ - Services
+ - Namespaces
+ - Imperative & Declarative
+ - Kubectl apply command
 ##
