@@ -2,6 +2,7 @@
 ## Table of Contents
  - [Certification Tip](#certification-tip)
  - [Core Concepts](#core-concepts)
+ - [Scheduling](#scheduling)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -87,4 +88,16 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - last applied configuration (json format): stored in an annotation of live object configuration named: `last-applied-configuration`
    - k8s: live object configuration
    - **note:** `kubectl create` or `kubectl replace` don't store `last-applied-configuration` like `kubectl apply`
-##
+
+## Scheduling
+ - manual scheduling: usually, the scheduler will decide which container goes to which node ( by adding `nodeName` property to pod configuration), but if you wanna schedule containers by yourself, then you can schedule the pod by adding `nodeName` property in the pod yaml config while creating the pod, or for the existing pod, create a pod `Binding` object and send a POST request to the pod binding API.
+ - labels and selectors
+ - taints and tolerations
+ - node selectors
+ - node affinity
+ - taints and tolerations vs node affinity
+ - resource requirements and limits
+ - daemonsets
+ - static pods
+ - multiple schedulers
+ - configuring scheduler profiles
