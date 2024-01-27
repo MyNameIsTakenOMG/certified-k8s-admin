@@ -20,7 +20,13 @@
  - Kubelet
  - Kube Proxy
  - Pods
- - ReplicaSets
+ - ReplicaSets: can control pods across multiple nodes
+   - commands:
+     - `kubectl create -f <replicaset yml file name>.yml`
+     - `kubectl get replicaset`
+     - `kubectl delete replicaset <replicaset yml file name>`
+     - `kubectl replace -f <replicaset yml file name>.yml`
+     - `kubectl scale --replicas=6 -f <replicaset yml file name>.yml` --> (-f filename | type name)
  - Deployments
  - Services
  - Namespaces
