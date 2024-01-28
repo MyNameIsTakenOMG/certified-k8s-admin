@@ -91,13 +91,47 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
 
 ## Scheduling
  - manual scheduling: usually, the scheduler will decide which container goes to which node ( by adding `nodeName` property to pod configuration), but if you wanna schedule containers by yourself, then you can schedule the pod by adding `nodeName` property in the pod yaml config while creating the pod, or for the existing pod, create a pod `Binding` object and send a POST request to the pod binding API.
- - labels and selectors
- - taints and tolerations
- - node selectors
- - node affinity
- - taints and tolerations vs node affinity
- - resource requirements and limits
- - daemonsets
- - static pods
- - multiple schedulers
+ - labels and selectors:
+   - labels: can have multiple labels, and for `matchLabels`, make sure to add the labels so that the correct objects will be matched.
+   - selectors: for commands, add option `--selector` with labels to get the objects expected.
+   - annotations: used for attaching many different kinds of metadata to the objects, such as  build, release, client library or tool information, etc.
+ - taints and tolerations:
+   - taints: on the nodes
+     - commands: `kubectl taint nodes <node name> key=value:taint-effect` : `key=value` is the taint, `taint-effect`: `NoSchedule | PreferNoSchedule | NoExecute ` (NoExecute will evict any existing pods)
+   - tolerations: on the pods yaml configuration file `spec.tolerations` : `key:"app"`, `operator:"Equal"`, `value:"blue"`, `effect:"NoSchedule"`
+   - **note: taints and tolerations are just restrictions, in other words, there's no guarantee that certain pods will go to certain nodes, unless we use node affinity**
+   - `kubectl describe node kubemaster | grep Taint` : master node has a taint to prevent any pod from launching on.
+ - node selectors: designate certain pods to go to certain nodes
+   - for pods: add property `nodeSelector` with certain labels (key=value)
+   - for nodes: use command `kubectl label nodes <node name> key=value`
+   - **note:** can only handle simple use cases
+ - node affinity: compared to `node selectors`, the `operator` has more features, such as `Exists`, `In`, `NotIn`, etc.
+   - for nodes: use command `kubectl label nodes <node name> key=value` to add labels to nodes
+   - for pods: add property section `affinity`
+     - types: `requiredDuringSchedulingIgnoredDuringExecution` , `preferredDuringSchedulingIgnoredDuringExecution` and a planned one `requiredDuringSchedulingIgnoredDuringExecution`
+     - explain: `duringScheduling` --> for any new pods, `IgnoreDuringExecution` --> for any existing pods
+ - taints and tolerations vs node affinity: `taints and tolerations is used to make sure a certain node only takes certain pods, and node affinity is used to make sure that certain nodes have bindings with certain pods, meaning those pods would go into other nodes`
+ - resource requirements and limits:
+   - requests: resources required for running the pod
+   - limits: the limits of amount of resources that a pod can use at maximal
+   - ideally, set requests but not limits, but in some cases, limits should be set as well
+   - `limitRange` object to setup requests and limits  --> for pods
+   - `ResourceQuota` object to be created at namespace level --> to manage the total resource usage
+ - A quick note on editing Pods and Deployments: for editing a pod specifications, some fields are not allowed to be updated during execution, however, those changes will be saved in a yaml file of `tmp` folder, so we can delete the current the pod, and then create a new pod using that saved file. The second option is using `kubectl get pod <pod name> -o yaml > <yaml name>.yaml` to extract yaml information, then update it, delete the current pod, and then using the new yaml file to create a new pod. While for deployment, directly using `kubectl edit deployment <deployment name>`, then you are good to go.
+ - daemonsets: make sure there's one instance of pod existing on each node
+   - use cases: monitoring solution & log viewer / kube-proxy / networking
+   - a daemonset object configuration is like a replicaset
+   - **note:** by far, `kubectl create` wouldn't be able to create a daemonset, but we can create a deployment first, then update the yaml file, and then create a daemonset.
+ - static pods: the **kubelet** works on pod level, can only understand pod, other objects like replicaset, deployment are part of the whole k8s cluster architecture, which cannot be created without other components.
+   - store yaml file at the path: `/etc/kubernetes/manifests`
+   - config the path:
+     - kubelet.service file: option: `--pod-manifest-path=`
+     - kubelet.service file: option: `--config=<a yaml file>` with `staticPodPath: <path>`
+   - `kubectl` knows the static pods(a mirror object), but cannot update/delete it, instead, it can only be deleted by modifying the file in the `path`
+   - use cases: create a controlplane component as a static pod, which can be managed by kubelet, which is how kube admin tool sets up k8s cluster.
+   - **note:** both `daemonset` and `static pod` are ignored by `kube-scheduler`
+   - **remember the path `/var/lib/kubelet/config.yaml` --> staticPodPath where all static pod configuration files located**
+ - multiple schedulers: we can create our own scheduler, and instruct kubernetes when to use which
+   - create `kubeSchedulerConfiguration` object
+   - deploy custom scheduler
  - configuring scheduler profiles
