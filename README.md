@@ -4,6 +4,7 @@
  - [Core Concepts](#core-concepts)
  - [Scheduling](#scheduling)
  - [Logging and Monitoring](#logging-and-monitoring)
+ - [Application LifeCycle Management](#application-lifecycle-management)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -151,3 +152,46 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - monitor cluster components
    - monitor: `Metrics Server`: one instance per cluster, and in-memory solution. in `kubelet`, there's sub component `container advisor` used to gather metrics from pods and then make them available for `Metrics Server`. To install `Metrics Server`(minikube or other...)... To view metrics, `kubectl top node`, `kubectl top pod`
  - managing application logs: `kubectl logs -f <pod name> <explicitly specify container name if there are more than one>`
+
+## Application LifeCycle Management
+ - rolling updates and rollbacks
+   - rollout and versioning: when creating a new `deployment`, a new `rollout` gets triggered which will create a new `revision`, which helps us keep track of the changes made to our deployment and enables us to roll back to the previous version if needed.
+   - command: `kubectl rollout status deployment/<deployment name>` / `kubectl rollout history deployment/<deployment name>`
+   - deployment strategy: recreate(application downtime), rolling updates(default)
+   - kubectl apply: `kubectl apply -f <deployment filename>` or `kubectl set image deployment/<deployment name> <image name and version>`
+   - rollback: `kubectl rollout undo deployment/<deployment name>`
+ - application commands: `docker file` `CMD` and docker command: `ENTRYPOINT`, `CMD`
+ - application-commands and arguements:  in kubernetes env, or pod definition,  `ENTRYPOINT` --> `spec.containers.command`, `CMD` --> `spec.containers.args`
+ - configure environment variables in applications: under the `spec.containers.env`, we can have name-value pairs for env variables, or using `configmap`, `secret` objects refs
+   - configmap: can be injected entirely into pod using `envFrom`
+     - create imperatively: `kubectl create configmap <configmap name> --from-literal=<key>=<value> --from-literal=...` or `kubectl create configmap <name> --from-file=<path>`
+     - create declaratively: `kubectl create -f`
+     - configmaps in pods:
+       - entire configmap: `envFrom`
+       - single env: `env`
+       - volumes: `volumes.configmap`
+ - configure secrets in applications:
+   - create secrets imperatively: similar to configmap
+   - create secrets declaratively: similar to configmap
+   - encode secrets: `echo -n 'password' | base64 `
+   - view secret: `kubectl describe secret <secret name>` , `kubectl get secret <secret name> -o yaml`
+   - decode secret: `echo -n 'password' | base64 --decode`
+   - secrets in pods: similar to configmap, entire file, single value, volume
+   - **note:** secrets are not encrypted. Don't checkin secret in source control management (like github). considering encrypt secrets in ETCD. Anyone in the same namespace can access the secrets, considering using RBAC. Considering using 3rd parth secret provider, like AWS, Azure or GCP.
+ - demo: encrypt secrets at rest --> the point is to check if `kube-apiserver` already enabled the `--encryption-provider-config`, otherwise create a `encryptionconfiguration` file, mount this file as a volume onto `kube-apiserver` pod config file.
+ - multiple containers pods:
+ - Multi-container Pods Design Patterns: There are 3 common patterns, when it comes to designing multi-container PODs. The first and what we just saw with the logging service example is known as a side car pattern. The others are the adapter and the ambassador pattern. But these fall under the CKAD curriculum and are not required for the CKA exam. So we will be discuss these in more detail in the CKAD course.
+ - InitContainers: at times you may want to run a process that runs to completion in a container. For example a process that pulls a code or binary from a repository that will be used by the main web application. That is a task that will be run only  one time when the pod is first created. Or a process that waits  for an external service or database to be up before the actual application starts. That's where `initContainers` comes in. An `initContainer` is configured in a pod like all other containers, except that it is specified inside a `initContainers` section. When a POD is first created the initContainer is run, and the process in the initContainer must run to a completion before the real container hosting the application starts. You can configure multiple such initContainers as well, like how we did for multi-containers pod. In that case each init container is run `one at a time in sequential order`. If any of the initContainers fail to complete, Kubernetes restarts the Pod repeatedly until the Init Container succeeds.
+ - Self Healing Applications: Kubernetes supports self-healing applications through ReplicaSets and Replication Controllers. The replication controller helps in ensuring that a POD is re-created automatically when the application within the POD crashes. It helps in ensuring enough replicas of the application are running at all times. Kubernetes provides additional support to check the health of applications running within PODs and take necessary actions through Liveness and Readiness Probes. However these are not required for the CKA exam and as such they are not covered here. These are topics for the Certified Kubernetes Application Developers (CKAD) exam and are covered in the CKAD course.
+##
+
+
+
+
+
+
+
+
+
+
+
