@@ -148,3 +148,6 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - we can create multiple scheduler profiles in a single scheduler instead of creating multiple schedulers.
 
 ## Logging and Monitoring
+ - monitor cluster components
+   - monitor: `Metrics Server`: one instance per cluster, and in-memory solution. in `kubelet`, there's sub component `container advisor` used to gather metrics from pods and then make them available for `Metrics Server`. To install `Metrics Server`(minikube or other...)... To view metrics, `kubectl top node`, `kubectl top pod`
+ - managing application logs: `kubectl logs -f <pod name> <explicitly specify container name if there are more than one>`
