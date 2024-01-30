@@ -3,6 +3,7 @@
  - [Certification Tip](#certification-tip)
  - [Core Concepts](#core-concepts)
  - [Scheduling](#scheduling)
+ - [Logging and Monitoring](#logging-and-monitoring)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -133,5 +134,17 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - **remember the path `/var/lib/kubelet/config.yaml` --> staticPodPath where all static pod configuration files located**
  - multiple schedulers: we can create our own scheduler, and instruct kubernetes when to use which
    - create `kubeSchedulerConfiguration` object
-   - deploy custom scheduler
- - configuring scheduler profiles
+   - deploy custom scheduler as a pod (when using `kubeadm`)
+   - when there are multiple master node with a copy custom scheduler running within, then we may wanna set up property `LeaderElection( in scheduler yaml configure file)` to make sure there's only one scheduler gets running at a time.
+   - to view shceduler, `kubectl get pods -n kube-system`
+   - to use custom scheduler, make sure there's a `schedulerName` property defined in pod configuration file
+   - to figure out which scheduler gets picked up:
+     - view events: `kubectl get events -o wide`
+     - view scheduler logs: `kubectl logs <scheduler name> -n kube-system`
+ - configuring scheduler profiles:
+   - when a pod is created, it will be put in a scheduling queue based on its priority (the `priorityClassName` property in the pod configuration), which also means that a `PriorityClass` object needs to be created first.
+   - there are 4 stages: `scheduling queue`, `filter`, `sort`, `bind`. Each stage will use some plugins
+   - for each stage, there are some extension points for extra or custom functionalities.
+   - we can create multiple scheduler profiles in a single scheduler instead of creating multiple schedulers.
+
+## Logging and Monitoring
