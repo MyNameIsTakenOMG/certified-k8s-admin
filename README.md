@@ -202,9 +202,16 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - backup and restore:
    - backup candidates:
      - resource configuration: `kubectl get all --all-namespaces -o yaml > all-deploy-services.yaml` or tools like Velero can do the backup for you
-     - ETCD cluster: 
+     - ETCD cluster: etcd.service -->  `--data-dir=` the path where all data are stored. `ETCDCTL_API=3 etcdctl snapshot save <path+ 'snapshot.db'>`. `ETCDCTL_API=3 etcdctl snapshot status <path+ 'snapshot.db'>`. For restoring, first `service kube-apiserver stop`, then `ETCDCTL_API=3 etcdctl snapshot restore <path+ 'snapshot.db'> --data-dir=<path for new etcd cluster data>`, then configure etcd.service to use the new path to store data, then `systemctl daemon-reload`, `systemctl restart etcd`, `systemctl restart kube-apiserver`. 
      - Persistent volumes
    - `etcdctl` is a command line client for `etcd`. `export ETCDCTL_API=3`. if you want to take a snapshot of etcd, use: `etcdctl snapshot save -h` and keep a note of the mandatory global options. Since our ETCD database is TLS-Enabled, the following options are mandatory: `--cacert` verify certificates of TLS-enabled secure servers using this CA bundle. `--cert` identify secure client using this TLS certificate file. `--endpoints=[127.0.0.1:2379]` This is the default as ETCD is running on master node and exposed on localhost 2379. `--key` identify secure client using this TLS key file. Similarly use the help option for snapshot restore to see all available options for restoring the backup. `etcdctl snapshot restore -h`
+   - This means that ETCD is set up as a `Stacked ETCD Topology` where the distributed data storage cluster provided by etcd is stacked on top of the cluster formed by the nodes managed by kubeadm that run control plane components.
+   - go describe kube-apiserver to find details about controlplane components, `kubectl describe pod <kube api server pod name> -n kube-system` : especially `etcd`
+   - remember `ps -ef | grep etcd` to get the running process
+   - remember ` scp <path1> <path2>` --> copy files from localhost to a remote server
+   - remember `/etc/systemd/system/etcd.service`
+   - remember `/var/lib/kubelet/config.yaml` --> `staticPodPath`
+   - **remember to redo the 'backup & restore #2' later**
 ##
 
 
