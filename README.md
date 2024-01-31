@@ -6,6 +6,7 @@
  - [Logging and Monitoring](#logging-and-monitoring)
  - [Application LifeCycle Management](#application-lifecycle-management)
  - [Cluster Maintenance](#cluster-maintenance)
+ - [Security](#security)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -211,7 +212,63 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - remember ` scp <path1> <path2>` --> copy files from localhost to a remote server
    - remember `/etc/systemd/system/etcd.service`
    - remember `/var/lib/kubelet/config.yaml` --> `staticPodPath`
-   - **remember to redo the 'backup & restore #2' later**
+   - ~**remember to redo the 'backup & restore #2' later**~ --> done! ✅
+## Security
+ - security primitives: `secure host`, `secure kubernetes`✅: `kube-apiserver` --> authentication & authorization , --> `TLS certificates` used between components in controlplane as well as worker nodes, `network policies` setup for communication between pods across nodes.
+ - authentication:
+   - accounts: admins, developers, bots(service account)
+   - kube-apiserver: authenticate before processing the requests from admins and developers
+   - auth mechanisms: `static password file`, `static token file`, `certificate`, `identity service`
+   - auth mechanism -- basics: for `static password file` or `static token file`, example: user.csv (columns: password, username, userId, optional--groupId), and config `kube-apiserver.service` -- `--basic-auth-file` | `--token-auth-file` or config `kube-apiserver` yaml file using `kubeadm` 
+   - authenticate user:  `... -u "user:password"` | `... --header "Authorization: Bearer <token>"`
+   - **note:** `static password file`, `static token file` not recommended. If using it, consider volume mount to provide the auth file, also setup RBAC for new users.
+ - TLS basics: encrypt data between end users and servers using symmetric encryption or asymmetric encryption(public key and private key)
+   - ssh: `ssh keygen` --> `id_rsa`, `id_rsa.pub`, on the server side: cat ~/.ssh/authorized_keys. then client: `ssh -i id_rsa user@server`
+   - in a shell, using symmetric keys to encrypt the data, and using asymmetric public and private keys on top of it as an extra layer of security, so that hackers are left with a bunch of encrypted data without a private key to decrypt to get the symmetric key which can be used to decrypt the data again to get real `data`.
+   - `PKI`: public key infrastructure
+   - certificate(public key): *.crt, *.pem
+   - private key: *.key, *-key.pem
+   - `Three types of certificates: server certificates(asymmetric keys), root certificates(CA--certificate authority (domain name ownership)), client certificates(symmetric keys)`
+ - TLS in kubernetes
+   - server:
+     - kube-apiserver: server certificates (asymmetric)
+     - etcd-server: server certificates (asymmetric)
+     - kubelet(worker nodes): server certificates (asymmetric)
+   - client:
+     - admin --> kube-apiserver (asymmetric)
+     - kube-scheduler --> kube-apiserver (asymmetric)
+     - controller-manager --> kube-apiserver (asymmetric)
+     - kube-proxy --> kube-apiserver (asymmetric)
+     - kube-apiserver --> etcd-server (asymmetric)
+     - kube-apiserver --> kubelet (asymmetric)
+     - kubelet --> kube-apiserver (asymmetric)
+   - CA (certificate authority used to sign the certificates)
+ - TLS in kubernetes -- generate certificates
+   - tools, like `openssl` to generate certificates
+   - **Steps to generate certificates in k8s**:
+     - **generate CA certificates:**
+       - generate keys: `openssl genrsa -out ca.key 2048`
+       - certificate signing request: `openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr`
+       - sign certificate: `openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt`
+     - **generate client certificates:** (for admin users)
+       - generate keys: `openssl genrsa -out admin.key 2048`
+       - certificate signing request: `openssl req -new -key admin.key -subj "/CN=kube-admin/O=system:masters" -out admin.csr` (**note:** '/O=system:masters' the group details)
+       - sign certificate: `openssl x509 -req -in admin.csr -CA ca.crt -CAkey ca.key -out admin.crt`
+       - **note:** naming convention: a prefix 'system-' for all system component, such as `kube-apiserver`, `kube-scheduler`, `kube-proxy`, etc.
+       - to use certificate, `curl https://...  --key <key, not the ca key, such as admin.key> --cert <cert, such as admin.crt> --cacert <ca cert, such as ca.crt>`, or to put parameters in `kube-config.yaml`
+       - **note:** also, for clients and servers, a copy of CA certificate will be required.
+     - **generate server certificates:**
+       - for ETCD, follow the same process to generate `key`, `certificate signing request`, and `certificate`. as ETCD can be deployed as a cluster across multiple server, then we need create `peer certificate` among different members in the cluster. there are options for peer certificates and cacert, cert, and key in `etcd.service` config file.
+       - for kube-apiserver, first generate a key, then a `openssl.cnf` file where specifing all aliases names about the kube-apiserver, then generating a certificate signing request with the option `-config openssl.cnf`. there are options `--tls-*` for server certificate, `--client-ca-file` for ca file, `--etcd-*`, `--kubelet-*` for client certificates.
+       - for kubelet server, follow the steps to generate key, certificate signing request, and certificate (naming after the nodename), then in the `kubelet-config.yaml`, config key, cert, and ca. for kubelet client , naming convention `system-node-node01`, add a group name, such as `system:nodes`
+ - view certificates:
+   - create and deploy k8s cluster 'the harder way': native services --> `cat /etc/systemd/system/kube-apiserver.service`
+   - create and deploy k8s cluster using `kubeadm`: service as a pod --> `cat /etc/kubernetes/manifests/kube-apiserver.yaml`
+   - take `kubeadm` and `kube-apiserver` for example:
+     - first `cat /etc/kubernetes/manifests/kube-apiserver.yaml`, and locate the corresponding configs for certs
+     - second, `openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout` to decode the cert and view the details
+##
+##
 ##
 
 
