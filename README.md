@@ -5,6 +5,7 @@
  - [Scheduling](#scheduling)
  - [Logging and Monitoring](#logging-and-monitoring)
  - [Application LifeCycle Management](#application-lifecycle-management)
+ - [Cluster Maintenance](#cluster-maintenance)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -183,6 +184,26 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - Multi-container Pods Design Patterns: There are 3 common patterns, when it comes to designing multi-container PODs. The first and what we just saw with the logging service example is known as a side car pattern. The others are the adapter and the ambassador pattern. But these fall under the CKAD curriculum and are not required for the CKA exam. So we will be discuss these in more detail in the CKAD course.
  - InitContainers: at times you may want to run a process that runs to completion in a container. For example a process that pulls a code or binary from a repository that will be used by the main web application. That is a task that will be run only  one time when the pod is first created. Or a process that waits  for an external service or database to be up before the actual application starts. That's where `initContainers` comes in. An `initContainer` is configured in a pod like all other containers, except that it is specified inside a `initContainers` section. When a POD is first created the initContainer is run, and the process in the initContainer must run to a completion before the real container hosting the application starts. You can configure multiple such initContainers as well, like how we did for multi-containers pod. In that case each init container is run `one at a time in sequential order`. If any of the initContainers fail to complete, Kubernetes restarts the Pod repeatedly until the Init Container succeeds.
  - Self Healing Applications: Kubernetes supports self-healing applications through ReplicaSets and Replication Controllers. The replication controller helps in ensuring that a POD is re-created automatically when the application within the POD crashes. It helps in ensuring enough replicas of the application are running at all times. Kubernetes provides additional support to check the health of applications running within PODs and take necessary actions through Liveness and Readiness Probes. However these are not required for the CKA exam and as such they are not covered here. These are topics for the Certified Kubernetes Application Developers (CKAD) exam and are covered in the CKAD course.
+
+## Cluster Maintenance
+ - OS upgrades: if a node is down within 5 min, then `kubelet` process starts, and pods come back online. But if a node is down for more than 5 min, then pods will be gone. If the pods in the node are part of a replicaset, then some new pods will be created in other nodes. The `--pod-eviction-timeout` flag is deprecated from 1.27 kubernetes release. From now on, flags `--default-not-ready-toleration-seconds` and `--default-unreachable-toleration-seconds` are used through kube-apiserver pod to control the pod eviction. So a safer way to do maintenance is the use `kubectl drain` to "move" pods to other nodes, remember that the node is unscheduled, you have to manually make it schedulable by using `kubectl uncordon`. Accordingly, there's command `kubectl cordon` that simply mark a node unscheduled, unlike `kubectl drain`, the pods will not be "moved".
+ - kubernetes releases: apart from `ETCD cluster` and `CoreDNS`, other components are sharing the same version number.
+ - **note:** if `kube-apiserver` version is "X", then `controller-manager` and `kube-scheduler` version should be X-1 or X, and `kubelet` and `kube-proxy` version should between X-2 and X, and `kubectl` version should between X-1 and X+1
+ - cluster upgrade process:  kubernetes always maintain 3 minor versions. and the recommended way to upgrade is to upgrade 1 minor version at a time. using `kubeadm` to perform upgrade.
+   - version number expain:  4.2.1 --> 4 major , 2 minor , 1 patch
+   - two steps to upgrade the cluster: 1. upgrade the master node. 2. upgrade the worker nodes
+   - strategies for worker nodes: 1.upgrade all worker nodes all together( facing downtime) 2. upgrade one at a time. 3. add new version nodes (using cloud platform to easily perform the operations).
+   - Kubeadm - upgrade: `kubeadm upgrade plane`,  `kubeadm upgrade apply`  **kubeadm doesn't install or upgrade kubelet**
+     - `apt-get upgrade -y kubeadm=1.12.0-00`, then `kubeadm upgrade apply v1.12.0` --> master node components version upgraded
+     - `apt-get upgrade -y kubelet=1.12.0-00` to upgrade the version of `kubelet` for the master node
+     - `systemctl restart kubelet` for the master node
+     - **now for worker nodes:** `kubectl drain <worker node name>`, then `apt-get upgrade -y kubeadm=1.12.0-00`, then `apt-get upgrade -y kubelet=1.12.0-00`, `kubeadm upgrade node config --kubelet-version v1.12.0`, then `systemctl restart kubelet`, then `kubectl uncordon <worker node name>`
+   - demo -- upgrade cluster (more up-to-date): 
+ - backup and restore:
+   - backup candidates:
+     - resource configuration: `kubectl get all --all-namespaces -o yaml > all-deploy-services.yaml` or tools like Velero can do the backup for you
+     - ETCD cluster: 
+     - Persistent volumes
 ##
 
 
