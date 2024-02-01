@@ -267,6 +267,10 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - take `kubeadm` and `kube-apiserver` for example:
      - first `cat /etc/kubernetes/manifests/kube-apiserver.yaml`, and locate the corresponding configs for certs
      - second, `openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout` to decode the cert and view the details
+     - details to look at: `issuer`(should be the CA), `validity`(expire), `subject`, `subject alternative names`
+   - inspect service logs for native services: `journalctl  -u etcd.service -l` --> look for `clientTLS ...`
+   - view logs for pods: `kubectl logs <pod name>` --> look for `clientTLS ...`. If etcd or kube-apiserver is down, then go deeper to `docker` or `crictl`, `docker ps -a`, `docker logs <container id>`
+ - 
 ##
 ##
 ##
