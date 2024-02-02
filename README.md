@@ -270,7 +270,71 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - details to look at: `issuer`(should be the CA), `validity`(expire), `subject`, `subject alternative names`
    - inspect service logs for native services: `journalctl  -u etcd.service -l` --> look for `clientTLS ...`
    - view logs for pods: `kubectl logs <pod name>` --> look for `clientTLS ...`. If etcd or kube-apiserver is down, then go deeper to `docker` or `crictl`, `docker ps -a`, `docker logs <container id>`
- - 
+ - certificate workflow and API
+   - steps:
+     - create `certificatesigningrequest` object (pre: `openssl genrsa -out jane.key 2048`, `openssl req -new -key jane.key -subj "/CN=jane" -out jane.csr`, and `cat jane.csr | base64` which will be put into `spec.request`)
+     - review requests: `kubectl get csr`
+     - approve requests: `kubectl certificate approve <csr name>`
+     - share certs to users `kubectl get csr <csr name> -o yaml` (`status.certificate:`) , then decode it `echo ... | base64 --decode`
+   - all certificates operations are managed by `controller-manager`(`CSR-approve`, `CSR-signing`)
+   - `cat /var/kubernetes/manifests/kube-controller-manager.yaml`
+ - kubeConfig : put those certs into a `config` file and `--kubeconfig config` when using `kubectl`. the path for the kube config file `$home/.kube/config`, by default, `kubectl` will look into that path `$home/.kube/config`, so no need for explicit option `--kubeconfig <config file path>`
+   - kubeconfig file: (`config` object : 3 sections: clusters, contexts, users )
+     - clusters: different envs
+     - contexts: connect users(existing) to envs
+     - users: different users with different privileges for different envs
+   - view kubeconfig: `kubectl config view` or add option `--kubeconfig=<my custom kubeconfig file>`
+   - switch context: `kubectl config use-context <username>@<cluster name>` --> directly reflects to the config file
+   - `contexts` has an additional field to specify which `namespace` to be connected under a certain cluster(env) with the specified user
+   - for certificates part, we can specify the path to the certificates `certificate-authority` for example, or add the actual cert with `certificate-authority-data`
+ - API groups: `/metrics`, `/healthz`, `/version` , `/logs`, `/api`(core functionalities), `/apis`(named: more organized, more features will be available through these api groups)
+ - authorization:
+   - authorization mechanisms: `node`, `ABAC`, `RBAC`, `webhook`
+     - `node`: when creating certificates for `kubelet` (we specify the name `system-node`), then for kube-apiserver `node authorizer` would check that prefix
+     - `ABAC`: for external users or groups who will be assigned with a set of permissions, not effective when more users come in, cuz the permissions have to be assigned to users one after another
+     - `RBAC`: we define roles with sets of permissions, then assign those roles to users or groups
+     - `webhook`: outsource authorization to the 3rd party services
+     - `alwaysAllow`
+     - `alwaysDeny`
+   - authorization mode: kube-apiserver --> `--authorization-mode=<mode1>,<mode2>,...`: an authorizer either makes a decision(allow or deny) or ignore and pass the request to the next authorizer if the request is not under its responsibility.
+ - RBAC
+   - first create a `Role` object : apigroups(for core group `/api`, can leave it blank), resources, verbs
+   - then create a `RoleBinding` object to bind to a user(through static file or service account)
+   - view `role` or `rolebinding`: `kubectl describe`, `kubectl get`
+   - check access as a user: `kubectl auth can-i <verb> <resource>` or `kubectl auth can-i <verb> <resource>  --as <user> -n <namespace>` if admin
+   - in a `role` object, we can add `resourceName` to specify a resource
+   - remember `ps -aux`
+ - cluster role and cluster role binding
+   - cluster level resources --> `nodes`, `PV`, `namespaces`, `certificatesigningrequest`
+   - if use `cluster role` to specify a `namespace` level resource, then a user can access the resource `across all namespaces`
+ - service account
+   - a service account is used by machines or applications like monitoring apps not humans
+   - create a service account : `kubectl create` --> a `service account` is created, then a `secret` object is created with a token inside, then the `secret` object is linked to the `service account`, the token can be passed into `header Authorization: Bearer <token>`
+   - the `default` service account (secret--token) will be mounted as a volume onto a pod when creation, or add `spec.serviceAccountName` (custom account with other permissions). if want to disable the default behaviour, set `spec.automountServiceAccountToken: false`
+   - **updates 1.22 - 1.24**: no non-expiring token and associated secret object will be created along with creating a service account, we have to manually create it using `kubectl create` or send api request.
+ - Image security
+   - image name :   for example:  `image:  docker.io(registry)/library(user account)/nginx(image repository) `
+   - private repository:
+     - first `docker login`
+     - then `docker run <full path>`
+     - for kubernetes: `spec.containers.image: <full path>`, then create a `docker-registry` type of `secret` object with `username, password, email,server...` in it, then `spec.imagePullSecrets.name: <secret name>`.
+ - docker security:
+   - security user: `docker run --user=1000` or dockerfile `USER 1000`
+   - linux capabilities: `/usr/include/linux/capbility.h`
+   - `docker run --cap-add <capability> ubuntu`, `docker run --cap-drop <capability> ubuntu`, `docker run --privileged ubuntu`
+ - security context
+   - we can set security limits on pods level or container level (contain level will override pod level)
+   - `spec.securityContext.runAsUser` or `spec.containers.securityContext.runAsUser`
+   - **note:** capabilities can only be supported at container level `spec.containers.securityContext.capabilities[].add:`
+   - Run the command: `kubectl exec ubuntu-sleeper -- whoami` and check the user that is running the container.
+ - network policy
+   - traffic: ingress/ egress
+   - network security:
+   - `network policy` object use `label`(selectors) to match certain pods
+   - `network policy` rules: type(ingress/egress), pods(label selectors), ports
+   - no isolation if no network policy
+   - **note:** not all the netwoking solutions support network policy
+   - 
 ##
 ##
 ##
