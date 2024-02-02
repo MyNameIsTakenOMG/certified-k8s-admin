@@ -7,6 +7,7 @@
  - [Application LifeCycle Management](#application-lifecycle-management)
  - [Cluster Maintenance](#cluster-maintenance)
  - [Security](#security)
+ - [Storage](#storage)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -334,8 +335,33 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - `network policy` rules: type(ingress/egress), pods(label selectors), ports
    - no isolation if no network policy
    - **note:** not all the netwoking solutions support network policy
-   - 
-##
+## Storage
+ - storage in docker
+   - types:
+     - storage drivers: manage storage in images and containers and enable layered architecture, like moving or creating files between layers, examples: `aufs, zfs, overlay, btrfs...`
+     - volume driver plugins: default one is `local`, also some other plugins to create volumes on 3rd party solutions, like `rex-ray, covoy, zure file storage...`, can specify the option `docker run --volume-driver=<the driver name>`
+   - file system in docker: `/var/lib/docker/ --> (aufs/, container/, volumes/, volumes/)`
+   - `layered architecture`: `image layer`(read only) + extra `container layer`(the lifecycle is synced with the container--read&write) --> `copy on write`(files copied onto `container layer`)
+   - `volume`: `docker create volume <volume name>` --> `/var/lib/docker/volumes/<volume name>`. then run the container with the volume `docker run -v <volume name>:/var/lib/mysql mysql` which is called `volume mount`. **note:** if the volume is not created, then docker will create it for you. and also you can pass a custom full path of you custom which is called `binding mount`. `new way to mount volume: docker run --mount type=bind,source=/custom_path,target=/target_path <container_name>`
+ - Container storage interface (CSI):
+     - container runtime interface(CRI)
+     - container network interface(CNI)
+     - container storage interface(CSI): a univeral standard (a set of RPCs), allows any orchestrators work with any storage vendor plugins, like AWS EBS,
+ - volumes:
+   - volumes and mounts in k8s side: in pod configuration: `spec.volumes.hostPath.(path,type)`, `spec.containers.volumeMounts.(mountPath,name )` . However, this is not recommended in a multi-node env, because different nodes(servers) may have different data, or using a custom or existing file sharing solutions (like EFS, or EBS (io1)).
+ - persistent volumes:
+   - a cluster-wide pool of volumes configured by admins, which can be used by users for their apps deployed onto k8s cluster
+   - `access mode`: `readOnlyMany`, `readWriteOnce`, `readWriteMany`
+   - `capacity.storage`
+   - `hostPath.path`, or `some 3rd party storage solutions`
+ - persistent volume claims
+   - a pvc is bound to a pv
+   - can use labels to specify certain pv
+   - `pv-.spec.persistentVolumeReclaimPolicy: retain | delete | recycle`
+ - storage classes
+   - for cloud service providers, before provisioning a pv, we have to create a disk. -- `static provisioning`
+   - we create `storageClass` which would create a disk and pv for us, and then we set `spec.storageClassName=<storage class>`
+   - **note:** The Storage Class called local-storage makes use of `VolumeBindingMode` set to `WaitForFirstConsumer`. This will delay the binding and provisioning of a PersistentVolume until a Pod using the PersistentVolumeClaim is created.
 ##
 ##
 
