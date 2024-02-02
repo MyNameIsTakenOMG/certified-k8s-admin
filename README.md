@@ -8,6 +8,7 @@
  - [Cluster Maintenance](#cluster-maintenance)
  - [Security](#security)
  - [Storage](#storage)
+ - [Networking](#networking)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -362,7 +363,37 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - for cloud service providers, before provisioning a pv, we have to create a disk. -- `static provisioning`
    - we create `storageClass` which would create a disk and pv for us, and then we set `spec.storageClassName=<storage class>`
    - **note:** The Storage Class called local-storage makes use of `VolumeBindingMode` set to `WaitForFirstConsumer`. This will delay the binding and provisioning of a PersistentVolume until a Pod using the PersistentVolumeClaim is created.
-##
+## Networking
+ - linux networking basics:
+   - switching and routing:
+     - `ip link`--> check the interface, like `eth0`
+     - `ip addr add <ip cidr> dev <eth0>` --> to persists the change, config `/etc/network/interfaces`
+     - `route`
+     - `ip route add <cidr> via <ip gateway>`
+     - `ip route add <default gateway> via <ip gateway>` --> use for any outside ip addresses
+     - `0.0.0.0` in `destination`--> any addresses, `0.0.0.0` in `gateway` --> no need for a gateway, traffic inside the network
+     - `set a linux host a router`: by default, a packet is not forwarded from one interface(eth0) to another(eth1), use `cat /proc/sys/net/ipv4/ip_forward: 0 ->1`, and to keep it working during reboot, config `/etc/sysctl.conf --> net.ipv4.ip_forward=1` 
+   - DNS:
+     - `cat >> /etc/hosts --> <ip addr> <host name>`  (local hosts file)
+     - name resolution: hostname --> ip address
+     - `cat >> /etc/resolv.conf  --> nameserver <ip addr>`
+     - by default, `local hosts file` first, then `resolv.conf` file,  however, the order can be changed by `cat /etc/nsswitch.conf --> hosts:  files dns`
+     - add another entry to `cat >> /etc/resolv.conf --> nameserver 8.8.8.8` or go to DNS server `/etc/resolv.conf --> forward all unknown ip to 8.8.8.8`
+     - Domain names: top domain , sub domain
+     - inside the organization, set up `cat >> /etc/resolv.conf --> search  myorg.com [...other names]`
+     - records: A / AAAA / CNAME
+     - nslookup: `nslookup <hostname>` --> `ignore local hosts file`
+     - similarly, dig:
+   - CoreDNS: we download the CoreDNS binaries, and run it. then we config CoreDNS to use `/etc/hosts file`(with all the entries inside) by `cat > Corefile -->. { hosts /etc/hosts  }`. by default, it's listening to port 53.  
+   - Network namespaces: used by docker to make sure the isolation of containers
+     - `host --> a house`, then `namespace --> a room`, each container will have its own namespace, the host, however, has the visibility to see all containers. `ps aux` on the container / on the host
+     - a host has its own routing table and ARP table, and a container has its own network interface and routing and ARP tables.
+     - to create a new namespace on a linux host, `ip netns add <namespace name>`, to list `ip netns`, to see specific network namespace `ip netns exec <namespace name> ip link` or `ip -n <namespace name> link`. the same for ARP and routing tables `arp`, `route`
+     - to make a connection between two network namespaces, `ip link add <virtual eth name> type veth peer name <virtual eth name2>` --> a virtual cable, then attach the cable to the two network namespaces using `ip link set <virtual eth name> netns <network namespace name>`, then assign ip addresses to the virtual network interfaces using `ip -n <virtual network namespace name> addr add <ip address> dev <virtual eth name>`. then bring up the virtual eth interfaces using `ip -n <network namespace> link set <virtual eth name> up`.
+     - `Linux Bridge`: to connect multiple containers(network namespaces) together, we create a `virtual switch` using` ip link add <virtual switch name> type bridge`, then bring it up using `ip link set <virtual switch name> up`.  To delete `virtual cable`, `ip -n <virtual namespace> link del <virtual eth name>` the other end of the cable will be deleted automatically. then repeat the steps to create a cable for the network namespace and virtual switch, to attach cable to the switch `ip link set <virtual eth name> master <virtual switch name>`. to reach the private network that switch operates on from the host, we assign an ip address to the switch(since this is another network interface), then we can ping that network.
+     - **still working on the part after linux bridge...**
+   - Docker networking
+   - Container networking interface(CNI)
 ##
 
 
