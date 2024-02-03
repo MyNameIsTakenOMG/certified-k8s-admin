@@ -392,10 +392,102 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - to create a new namespace on a linux host, `ip netns add <namespace name>`, to list `ip netns`, to see specific network namespace `ip netns exec <namespace name> ip link` or `ip -n <namespace name> link`. the same for ARP and routing tables `arp`, `route`
      - to make a connection between two network namespaces, `ip link add <virtual eth name> type veth peer name <virtual eth name2>` --> a virtual cable, then attach the cable to the two network namespaces using `ip link set <virtual eth name> netns <network namespace name>`, then assign ip addresses to the virtual network interfaces using `ip -n <virtual network namespace name> addr add <ip address> dev <virtual eth name>`. then bring up the virtual eth interfaces using `ip -n <network namespace> link set <virtual eth name> up`.
      - `Linux Bridge`: to connect multiple containers(network namespaces) together, we create a `virtual switch` using` ip link add <virtual switch name> type bridge`, then bring it up using `ip link set <virtual switch name> up`.  To delete `virtual cable`, `ip -n <virtual namespace> link del <virtual eth name>` the other end of the cable will be deleted automatically. then repeat the steps to create a cable for the network namespace and virtual switch, to attach cable to the switch `ip link set <virtual eth name> master <virtual switch name>`. to reach the private network that switch operates on from the host, we assign an ip address to the switch(since this is another network interface), then we can ping that network.
-     - **still working on the part after linux bridge...**
-   - Docker networking
-   - Container networking interface(CNI)
+     - ~**still working on the part after linux bridge...**~
+     - to add NAT `iptables -t nat -A POSTROUTING -s <private cidr> -j MASQUERADE` for a private instance to the public network
+     - to add port forwarding `iptables -t nat -A REROUTING --dport 80 --to-destination <private ip>:80 -j DNAT` for a pubilc instance to a private instance
+ - Docker networking:
+   - `docker run --network none nginx`(no network, pods are isolated), `docker run --network host nginx`(multiple pods cannot launch using the same port)
+   - `docker run nginx` --> create a `bridge` network
+   - `docker run -p 8080:80 nginx` --> port-mapping, from 8080 to 80 using docker host ip address (port forwarding under the hood)
+ - Container networking interface(CNI)
+   - `Bridge` plugin: handle management of `Bridge` network as well as the containers inside
+     - must support command line arguments ADD/DEL/CHECK
+     - must support arguments container id, network ns, etc
+     - must manage ip assignment to pods
+     - must results in a specific format
+   - container runtime: how to work with plugin
+     - must create network namespace
+     - must identify the network that the container must be attached to
+     - must invoke CNI plugins when a container is ADDed / DELeted
+     - JSON format of network configuration
+   - CNI specify the standards for container runtimes and CNI plugins, and how they should work with each other
+   - **note:** because `docker` doesn't implement CNI, but CNM, so CNI plugins don't work with docker automatically, instead, we use `docker run --network none nginx` and then manually use `Bridge` plugin, which is the same as k8s.
+ - cluster networking
+   - ports needed to be open:
+     - etcd: 2379
+     - etcd client: 2378
+     - kube-api: 6443
+     - kubelet: 10250
+     - kube-scheduler: 10259
+     - kube-controller-manager: 10257
+     - services on worker nodes: 30,000 - 32,767
+   - commands:
+     - `ip link`
+     - `ip addr`
+     - `ip addr add <cidr address> dev <eth0 interface>`
+     - `ip route`
+     - `ip route add <cidr address> via <another cidr address>`
+     - `route`
+     - `arp`
+     - `netstat plnt`
+     - `cat /proc/sys/net/ipv4/ip_forward`
+     - **note:** remember `ip addr show type bridge` --> show the bridge network in the cluster
+     - **note:** remember `netstat -npl | grep -i kube-scheduler`, `netstat -anp | grep -i etcd`
+ - pod networking:
+   - k8s requires: each pod should have a Ip address, each pod can communicate with other pods in the same node or in other nodes without NAT
+   - container runtime:
+     - `/etc/cni/net.d/net-script.conflist`
+     - `/opt/cni/bin/net-script.sh`
+     - `./net-script.sh add <container> <namespace>.`
+ - CNI in kubernetes
+   - CNI plugins must be invoked by the component in k8s cluster that is responsible for creating or deleting containers. the `kubelet` in each mode will be configured with CNI plugins, options: `kubelet.service --> --network-plugin= ; --cni-bin-dir= ; --cni-conf-dir=`
+   - view kubelet options: `ps -aux | grep kubelet`, `ls /opt/cni/bin`(supported plugins), `ls /etc/cni/net.d`(identify the plugin configured to be used for the cluster)
+ - CNI weave: `simple kubectl apply -f <url_weave>` will deploy weave onto the k8s cluster as a daemonset
+   - **remember when installing weave, make sure to look at the install processes in the weave doc -- in this case, the kube-proxy has cidr setup, when we need to make sure weave pod also use the same cidr**
+ - IP address management
+   - CNI -- DHCP / host-local: manage ip addresses
+   - weaveworks will divide the network `10.32.0.0/12` into multiple potions and assign them to `weave bridges`
+ - service networking:
+   - a virtual, cluster-wide object
+   - `kube-proxy`: use `service` ip to create a `forward rule` pointing to pods with certain ports
+     - `--proxy-mode`: `userspace`, `ipvs`, `iptables`(default)
+   - `kube-api-server --service-cluster-ip-range ipNet (default 10.0.0.0/24)`, `ps -aux | grep kube-apiserver --> ip range`
+   - `iptables -L  -t nat | grep db-service`
+   - `cat /var/log/kube-proxy.log`
+ - DNS in kubernetes: within the cluster (pods, services)
+   - k8s has a built-in DNS server
+   - `http://<service_name>` in the same namespace, `http://<service_name>.<namespace>.svc.cluster.local` in the different namespace
+   - all services are grouped together into a Sub domain, called `svc`
+   - for pods, `http://<ip: 1-2-3-4>.<namespace>.svc.cluster.local`
+ - CoreDNS in kubernetes: how kubernetes implement DNS in cluster
+   - corefile: `/etc/coredns/Corefile`: passed into k8s cluster as a `configmap`
+   - service `kube-dns` is created for `coredns` pod
+ - ingress
 ##
+##
+##
+##
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
