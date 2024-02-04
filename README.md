@@ -462,7 +462,9 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - CoreDNS in kubernetes: how kubernetes implement DNS in cluster
    - corefile: `/etc/coredns/Corefile`: passed into k8s cluster as a `configmap`
    - service `kube-dns` is created for `coredns` pod
- - ingress
+ - ingress:
+   - ingress controller: An Ingress controller is a specialized load balancer for Kubernetes (and other containerized) environments.
+   - ingress resource: An ingress resource is a standard configuration object for an ingress controller.
 ##
 ##
 ##
