@@ -11,6 +11,7 @@
  - [Storage](#storage)
  - [Networking](#networking)
  - [Design and install kubernetes cluster](#design-and-install-kubernetes-cluster)
+ - [Install kubernetes the kubeadm way](#install-kubernetes-the-kubeadm-way)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -504,7 +505,17 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - RAFT protocol: leader election
    - best practices on multiple nodes (Quorum = N/2 + 1), `having an odd number of etcd instances is great for fail tolerance`
    - `etcdctl`: `export ETECDCTL_API=3`, `etcdctl put name john`, `etcdctl get name`, `etcdctl get / --prefix --keys-only`
-##
+## Install kubernetes the kubeadm way
+ - kubeadm:
+   - steps:
+     - provision several nodes (physical or virtual machines)
+     - install container runtime
+     - install kubeadm on all nodes
+     - initialize the master node (all system components)
+     - setup Pod networking (CNI plugins)
+     - having work nodes to join the cluster
+ - deploy kubernetes cluster with kubeadm
+ - **still working on installing cluster using kubeadm lab**
 ##
 ##
 
