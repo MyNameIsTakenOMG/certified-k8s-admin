@@ -10,6 +10,7 @@
  - [Security](#security)
  - [Storage](#storage)
  - [Networking](#networking)
+ - [Design and install kubernetes cluster](#design-and-install-kubernetes-cluster)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -466,7 +467,43 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - ingress controller: An Ingress controller is a specialized load balancer for Kubernetes (and other containerized) environments.
    - ingress resource: An ingress resource is a standard configuration object for an ingress controller.
    - remember `default http backend` if no endpoint matches
-##
+## Design and install kubernetes cluster
+ - design a cluster:
+   - purpose
+     - eduction
+     - development & testing
+     - hosting production applications
+   - cloud or on-prem
+   - workloads
+     - how many
+     - what kind
+       - web
+       - big data / analytics
+     - application resource requirements
+       - CPU intensive
+       - memory intensive
+     - traffic
+       - heavy traffic
+       - burst traffic
+ - choose kubernetes infrastructure
+ - configure high availability
+   - kube-apiserver
+   - kube-scheduler: `--leader-elect`
+   - kube-controller-manager: `similar approach with kube-scheduler`
+   - etcd:
+     - topology:
+       - `stacked controlplane topology`: etcd is part of the master node --> one master goes down, etcd will fail
+       - `external etcd topology`: etcd runs on its own servers
+ - etcd in HA
+   - what's etcd
+   - key-value store
+   - how to get started quickly
+   - how to operate etcd
+   - what's distributed system
+   - how etcd operates: there's a leader node that's responsible for writes operations and sync the changes with other nodes (if a read node gets a write request, it will forward it to the leader node)
+   - RAFT protocol: leader election
+   - best practices on multiple nodes (Quorum = N/2 + 1), `having an odd number of etcd instances is great for fail tolerance`
+   - `etcdctl`: `export ETECDCTL_API=3`, `etcdctl put name john`, `etcdctl get name`, `etcdctl get / --prefix --keys-only`
 ##
 ##
 ##
