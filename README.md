@@ -465,6 +465,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - ingress:
    - ingress controller: An Ingress controller is a specialized load balancer for Kubernetes (and other containerized) environments.
    - ingress resource: An ingress resource is a standard configuration object for an ingress controller.
+   - remember `default http backend` if no endpoint matches
 ##
 ##
 ##
