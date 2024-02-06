@@ -542,9 +542,10 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
        - familiarize with json output : `kubectl get pods -o json`
        - form the json path query: `(kubectl will add $).items[0].spec.containers[0].image`
        - use json path query with kubectl command: `kubectl get pods -o=jsonpath='{.items[0].spec.containers[0].image}{"\n"}{...}' `
-       - loop - range: '{range .items[*]}{.metadata.name}{"\t"}{.status.capacity.cpu}{"\n"}{end}'
-       - json path for custom columns: `kubectl get nodes -o=custom-columns=<column name>:<json path>,<column name2>:<json path2>`
-       - json path for sort: `kubectl get nodes --sort-by=<json path>`
+     - loop - range: '{range .items[*]}{.metadata.name}{"\t"}{.status.capacity.cpu}{"\n"}{end}'
+     - json path for custom columns: `kubectl get nodes -o=custom-columns=<column name>:<json path>,<column name2>:<json path2>`
+     - json path for sort: `kubectl get nodes --sort-by=<json path>` (**note:** path starts with the single item in the list)
+     - **remember:** using double quotes to wrap single quotes when `kubectl ... -o jsonpath="{ ... '*' ... }"`
 
 
 
