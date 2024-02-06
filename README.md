@@ -511,13 +511,13 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - kubeadm:
    - steps:
      - provision several nodes (physical or virtual machines)
-     - install container runtime
+     - install container runtime (Cgroup --> control group in linux used to constraint resources to be allocated by services. `ps -p 1` to find out the cgroup, and then config container runtime as well as kubelet use the same cgroup. by default, kubelet uses `systemd`)
      - install kubeadm on all nodes
      - initialize the master node (all system components)
      - setup Pod networking (CNI plugins)
      - having work nodes to join the cluster
  - deploy kubernetes cluster with kubeadm
- - **still working on installing cluster using kubeadm lab**
+ - **still working on installing cluster using kubeadm lab** --> switch from one CNI plugin to another.
 ## Troubleshooting
  - application failure
  - control plane failure
