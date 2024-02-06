@@ -12,6 +12,8 @@
  - [Networking](#networking)
  - [Design and install kubernetes cluster](#design-and-install-kubernetes-cluster)
  - [Install kubernetes the kubeadm way](#install-kubernetes-the-kubeadm-way)
+ - [Troubleshooting](#troubleshooting)
+ - [Other topics](#other-topics)
 
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
@@ -516,8 +518,33 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - having work nodes to join the cluster
  - deploy kubernetes cluster with kubeadm
  - **still working on installing cluster using kubeadm lab**
-##
-##
+## Troubleshooting
+ - application failure
+ - control plane failure
+ - worker node failuer
+ - networking troubleshooting
+## Other topics
+ - YAML
+   - list: ordered
+   - disctionary(object,map): unordered
+ - JSON PATH
+   - dictionary: the root element --> `$` --> `$.x.y`
+     - `remember`: the results from the JSON PATH queries are in a format of `array`
+   - list: `$[0]` or multiple values from a list : `$[0,4]`
+     - criteria: `$[check if each item in the array > 40]` --> `$[?( @ >40 ) ]`
+     - `remember`: jsonpath doesn't have a built-in feature to stop searching when finding the first matched item in a list.
+   - wildcard: `$.*.color`(* --> all items), `$[*].color`, `$.*.wheel[*].color`
+   - lists: `$[0:3]` (end not included) , `$[0:8:2]` (:2--> step ), `$[-1:], $[-1:0], $[-3:]`(last item)
+   - use cases -- kubernetes
+     - kubectl: `by default, transform the json-formatted response from kube-apiserver into a simplified format, if wanna more details, use the -o wide`(still not complete)
+     - how to Json Path in kubernetes:
+       - identify the kubectl command
+       - familiarize with json output : `kubectl get pods -o json`
+       - form the json path query: `(kubectl will add $).items[0].spec.containers[0].image`
+       - use json path query with kubectl command: `kubectl get pods -o=jsonpath='{.items[0].spec.containers[0].image}{"\n"}{...}' `
+       - loop - range: '{range .items[*]}{.metadata.name}{"\t"}{.status.capacity.cpu}{"\n"}{end}'
+       - json path for custom columns: `kubectl get nodes -o=custom-columns=<column name>:<json path>,<column name2>:<json path2>`
+       - json path for sort: `kubectl get nodes --sort-by=<json path>`
 
 
 
