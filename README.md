@@ -14,7 +14,7 @@
  - [Install kubernetes the kubeadm way](#install-kubernetes-the-kubeadm-way)
  - [Troubleshooting](#troubleshooting)
  - [Other topics](#other-topics)
-
+ - [Filling the Gap](#filling-the-gap)
 ## Certification Tip
 As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the `kubectl run` command can help in generating a YAML template. And sometimes, you can even get away with just the `kubectl run` or `kubectl create` command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the `kubectl run` or `kubectl create` command.
 
@@ -614,7 +614,11 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - json path for custom columns: `kubectl get nodes -o=custom-columns=<column name>:<json path>,<column name2>:<json path2>`
      - json path for sort: `kubectl get nodes --sort-by=<json path>` (**note:** path starts with the single item in the list)
      - **remember:** using double quotes to wrap single quotes when `kubectl ... -o jsonpath="{ ... '*' ... }"`
-
+## Filling the gap
+ - `kubectl api-resources | grep replicaset` --> check out the details for resource configurations
+ - `kubectl expose deployment nginx --port=80 --target-port=8000` --> create a service based on a deployemnt on port 80, and connect to the containers on port 8000
+ - `kubectl run httpd --image=httpd:alpine --port=80 --expose` --> create a service based on a pod using `--expose` option to simplify the process
+ - recommend going with the `kubectl expose` command. If you need to specify a node port, generate a definition file using the same command and manually input the nodeport before creating the service.
 
 
 
