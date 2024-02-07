@@ -519,10 +519,47 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - deploy kubernetes cluster with kubeadm
  - **still working on installing cluster using kubeadm lab** --> switch from one CNI plugin to another.
 ## Troubleshooting
- - application failure
- - control plane failure
- - worker node failuer
- - networking troubleshooting
+ - application failure:
+   - check accessibility: `use curl http://<service_name>:<nodePort>`
+   - check service status: `check the service and the according pod, make sure the labels are matched
+   - check pod: `kubectl get --> status`, `kubectl describe pod <pod name>--> events`, `kubectl logs <pod name> -f(wait until it fails) or --previous(view the pre pod logs)`
+   - check the dependency service
+ - control plane failure:
+   - check node and pod status
+   - check controlplane pods (kube-system)
+   - check controlplane services
+     - native service : `service kube-apiserver status`
+   - check service logs:
+     - `kubectl logs kube-apiserver-master -n kube-system` --> kubeadm
+     - `sudo journalctl -u kube-apiserver` --> native service
+ - worker node failuer:
+   - check node status: `kubectl get nodes`, `kubectl describe node <node>`
+   - check node: `top`(cpu, mem...), `df -h`(file system)
+   - check kubelet status: `service kubelet status`, `sudo journalctl  -u kubelet`
+   - check certificates: `openssl x509 -in /var/lib/kubelet/<work node>.crt -text` --> check the issuer and validity
+     - remember:
+       - `/etc/kubernetes/kubelet.conf`: configuration file for the kubelet, which is the primary "node agent" that runs on each node in a Kubernetes cluster. This file contains configuration settings for the kubelet, such as the API server endpoint, authentication settings, and other options related to the kubelet's behavior.
+       - `/var/lib/kubelet/config.yaml`: another configuration file for the kubelet, which is used to specify additional settings and parameters for the kubelet's operation. This file may include settings related to pod eviction, node status updates, and other features of the kubelet.
+       - the controlplane port: `6443`
+ - networking troubleshooting:
+   - remember `/var/lib/kubelet/config.yaml --> cniConfigDir to specify the directory where CNI config file located`
+   - CNI plugins
+   - DNS in k8s: CoreDNS
+     - While analyzing the coreDNS deployment you can see that the `Corefile` plugin consists of important configuration which is defined as a `configmap`.
+     - `proxy . /etc/resolv.conf`
+     - Troubleshooting issues related to coreDNS:
+       - If you find CoreDNS pods in pending state first check network plugin is installed.
+       - coredns pods have CrashLoopBackOff or Error state
+       - If CoreDNS pods and the kube-dns service is working fine, check the kube-dns service has valid endpoints. `kubectl -n kube-system get ep kube-dns` If there are no endpoints for the service, inspect the service and make sure it uses the correct selectors and ports.
+   - kube-proxy: kube-proxy is a network proxy that runs on each node in the cluster. kube-proxy maintains network rules on nodes. These network rules allow network communication to the Pods from network sessions inside or outside of the cluster.
+     - Troubleshooting issues related to kube-proxy:
+       - Check kube-proxy pod in the kube-system namespace is running.
+       - Check kube-proxy logs.
+       - Check configmap is correctly defined and the config file for running kube-proxy binary is correct.
+       - kube-config is defined in the config map.
+       - check kube-proxy is running inside the container
+       - `netstat -plan | grep kube-proxy`
+
 ## Other topics
  - YAML
    - list: ordered
