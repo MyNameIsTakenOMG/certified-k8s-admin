@@ -61,12 +61,20 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - kubelet: listen to Kube apiserver for instructions and manage containers
      - kube-proxy: help communicate between services within the cluster
  - Docker vs ContainerD
- - ETCD
- - Kube-API Server
- - Kube Controller Manager
- - Kube Scheduler
- - Kubelet
- - Kube Proxy
+ - ETCD:
+   - commands: 
+     - `etcdctl get`, `etcdctl put`, `etcdctl snapshot save`, `etcdctl snapshot restore`, `etcdctl endpoint health`
+ - Kube-API Server:
+   - validate all incoming requests from clients, such as external users or other components, like etcd, kube-scheduler, controller-manager, or kubelet from worker nodes.
+ - Kube Controller Manager: --> node controller( health check 5 sec, wait for 40 sec to mark it unreachable, after marking it unreachable, wait 5 min for the node to come back up, if failed, then evict the pods, create new pods in other healthy nodes if they belong to certain replicaset ), replication controller(monitor the replicasets), basically, every single resource we have for the cluster will have an according controller.
+   - watch status(health check) from nodes, pods
+   - remediate situation
+   - in a non-kubeadm setup, to check the service `cat /etc/systemd/system/kube-controller-manager.service`, `ps -aux | grep kube-controller-manager` to view the options for the controller manager 
+ - Kube Scheduler: responsible for deciding which pod goes to which node, the `kubelet` will create the pods.
+   - filter phase
+   - rank phase
+ - Kubelet: `kubeadm doesn't install kebelet, we must install the kubelet manually on each node`. kubelet will instruct the container runtime to create a container
+ - Kube Proxy: configure a service by updating the `iptable rules`
  - Pods
  - ReplicaSets: can control pods across multiple nodes
    - commands:
