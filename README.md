@@ -549,7 +549,14 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - `proxy . /etc/resolv.conf`
      - Troubleshooting issues related to coreDNS:
        - If you find CoreDNS pods in pending state first check network plugin is installed.
-       - coredns pods have CrashLoopBackOff or Error state
+       - coredns pods have `CrashLoopBackOff` or `Error state`. If you have nodes that are running SELinux with an older version of Docker you might experience a scenario where the coredns pods are not starting. To solve that you can try one of the following options:
+         - Upgrade to a newer version of Docker
+         - Disable SELinux
+         - Modify the coredns deployment to set `allowPrivilegeEscalation` to true
+         - d)Another cause for CoreDNS to have `CrashLoopBackOff` is when a CoreDNS Pod deployed in Kubernetes detects a loop. There are many ways to work around this issue, some are listed here:
+           - Add the following to your kubelet config yaml: `resolvConf: <path-to-your-real-resolv-conf-file>` This flag tells `kubelet` to pass an alternate `resolv.conf` to Pods. For systems using `systemd-resolved, `/run/systemd/resolve/resolv.conf` is typically the location of the `"real" resolv.conf`, although this can be different depending on your distribution.
+           - Disable the local DNS cache on host nodes, and restore `/etc/resolv.conf` to the original.
+           - A quick fix is to edit your Corefile, replacing forward `. /etc/resolv.conf` with the IP address of your upstream DNS, for example forward `. 8.8.8.8`. But this only fixes the issue for CoreDNS, `kubelet` will continue to forward the invalid `resolv.conf` to all default dnsPolicy Pods, leaving them unable to resolve DNS.
        - If CoreDNS pods and the kube-dns service is working fine, check the kube-dns service has valid endpoints. `kubectl -n kube-system get ep kube-dns` If there are no endpoints for the service, inspect the service and make sure it uses the correct selectors and ports.
    - kube-proxy: kube-proxy is a network proxy that runs on each node in the cluster. kube-proxy maintains network rules on nodes. These network rules allow network communication to the Pods from network sessions inside or outside of the cluster.
      - Troubleshooting issues related to kube-proxy:
