@@ -558,14 +558,30 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
            - Disable the local DNS cache on host nodes, and restore `/etc/resolv.conf` to the original.
            - A quick fix is to edit your Corefile, replacing forward `. /etc/resolv.conf` with the IP address of your upstream DNS, for example forward `. 8.8.8.8`. But this only fixes the issue for CoreDNS, `kubelet` will continue to forward the invalid `resolv.conf` to all default dnsPolicy Pods, leaving them unable to resolve DNS.
        - If CoreDNS pods and the kube-dns service is working fine, check the kube-dns service has valid endpoints. `kubectl -n kube-system get ep kube-dns` If there are no endpoints for the service, inspect the service and make sure it uses the correct selectors and ports.
-   - kube-proxy: kube-proxy is a network proxy that runs on each node in the cluster. kube-proxy maintains network rules on nodes. These network rules allow network communication to the Pods from network sessions inside or outside of the cluster.
+   - kube-proxy: kube-proxy is a network proxy that runs on each node in the cluster. kube-proxy maintains network rules on nodes. These network rules allow network communication to the Pods from network sessions inside or outside of the cluster. In a cluster configured with `kubeadm`, you can find `kube-proxy` as a `daemonset`. `kubeproxy` is responsible for watching services and endpoint associated with each service. When the client is going to connect to the service using the virtual IP the `kubeproxy` is responsible for sending traffic to actual pods. If you run a `kubectl describe ds kube-proxy -n kube-system` you can see that the kube-proxy binary runs with following command inside the kube-proxy container:
+     - ### `Command:`
+       `/usr/local/bin/kube-proxy`
+
+       `--config=/var/lib/kube-proxy/config.conf`
+
+       `--hostname-override=$(NODE_NAME)`
+  
+       So it fetches the configuration from a configuration file ie, `/var/lib/kube-proxy/config.conf` and we can override the hostname with the node name of at which the pod is running.   In the config file we define the `clusterCIDR`, `kubeproxy mode`, `ipvs`, `iptables`, `bindaddress`, `kube-config` etc.
+
      - Troubleshooting issues related to kube-proxy:
        - Check kube-proxy pod in the kube-system namespace is running.
        - Check kube-proxy logs.
        - Check configmap is correctly defined and the config file for running kube-proxy binary is correct.
        - kube-config is defined in the config map.
        - check kube-proxy is running inside the container
-       - `netstat -plan | grep kube-proxy`
+         - ### netstat -plan | grep kube-proxy
+           `tcp        0      0 0.0.0.0:30081           0.0.0.0:*               LISTEN      1/kube-proxy`
+
+           `tcp        0      0 127.0.0.1:10249         0.0.0.0:*               LISTEN      1/kube-proxy`
+
+           `tcp        0      0 172.17.0.12:33706       172.17.0.12:6443        ESTABLISHED 1/kube-proxy`
+
+           `tcp6       0      0 :::10256                :::*                    LISTEN      1/kube-proxy`
 
 ## Other topics
  - YAML
