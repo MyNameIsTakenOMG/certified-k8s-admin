@@ -109,7 +109,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - **note:** `kubectl create` or `kubectl replace` don't store `last-applied-configuration` like `kubectl apply`
 
 ## Scheduling
- - manual scheduling: usually, the scheduler will decide which container goes to which node ( by adding `nodeName` property to pod configuration), but if you wanna schedule containers by yourself, then you can schedule the pod by adding `nodeName` property in the pod yaml config while creating the pod, or for the existing pod, create a pod `Binding` object and send a POST request to the pod binding API.
+ - manual scheduling: usually, the scheduler will decide which container goes to which node ( by adding `nodeName` property to pod configuration), but if you wanna schedule containers by yourself, then you can schedule the pod by adding `nodeName` property in the pod yaml config while creating the pod, or for the existing pod, create a pod `Binding` object and send a POST request to the pod binding API. `curl --header "Content-Type: application/json" --request POST --data {...json-format(binding object)...} https://$server/api/v1/namspaces/default/pods/$podname/binding`
  - labels and selectors:
    - labels: can have multiple labels, and for `matchLabels`, make sure to add the labels so that the correct objects will be matched.
    - selectors: for commands, add option `--selector` with labels to get the objects expected.
@@ -120,7 +120,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - tolerations: on the pods yaml configuration file `spec.tolerations` : `key:"app"`, `operator:"Equal"`, `value:"blue"`, `effect:"NoSchedule"`
    - **note: taints and tolerations are just restrictions, in other words, there's no guarantee that certain pods will go to certain nodes, unless we use node affinity**
    - `kubectl describe node kubemaster | grep Taint` : master node has a taint to prevent any pod from launching on.
- - node selectors: designate certain pods to go to certain nodes
+ - node selector: designate certain pods to go to certain node
    - for pods: add property `nodeSelector` with certain labels (key=value)
    - for nodes: use command `kubectl label nodes <node name> key=value`
    - **note:** can only handle simple use cases
@@ -129,8 +129,9 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - for pods: add property section `affinity`
      - types: `requiredDuringSchedulingIgnoredDuringExecution` , `preferredDuringSchedulingIgnoredDuringExecution` and a planned one `requiredDuringSchedulingIgnoredDuringExecution`
      - explain: `duringScheduling` --> for any new pods, `IgnoreDuringExecution` --> for any existing pods
- - taints and tolerations vs node affinity: `taints and tolerations is used to make sure a certain node only takes certain pods, and node affinity is used to make sure that certain nodes have bindings with certain pods, meaning those pods would go into other nodes`
+ - taints and tolerations vs node affinity: `taints and tolerations is used to make sure a certain node only takes certain pods, and node affinity is used to make sure that certain nodes have bindings with certain pods, meaning those pods would not go into other nodes`
  - resource requirements and limits:
+   - `pod.spec.containers[].resources.requests/limits.(cpu,memory)`
    - requests: resources required for running the pod
    - limits: the limits of amount of resources that a pod can use at maximal
    - ideally, set requests but not limits, but in some cases, limits should be set as well
@@ -142,6 +143,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - a daemonset object configuration is like a replicaset
    - **note:** by far, `kubectl create` wouldn't be able to create a daemonset, but we can create a deployment first, then update the yaml file, and then create a daemonset.
  - static pods: the **kubelet** works on pod level, can only understand pod, other objects like replicaset, deployment are part of the whole k8s cluster architecture, which cannot be created without other components.
+   - **note:** for static pods, the names have a specific suffix which is the `-<nodename>`
    - store yaml file at the path: `/etc/kubernetes/manifests`
    - config the path:
      - kubelet.service file: option: `--pod-manifest-path=`
