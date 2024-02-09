@@ -179,6 +179,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - deployment strategy: recreate(application downtime), rolling updates(default)
    - kubectl apply: `kubectl apply -f <deployment filename>` or `kubectl set image deployment/<deployment name> <image name and version>`
    - rollback: `kubectl rollout undo deployment/<deployment name>`
+   - `maxSurge`, `maxUnavailable`
  - application commands: `docker file` `CMD` and docker command: `ENTRYPOINT`, `CMD`
  - application-commands and arguements:  in kubernetes env, or pod definition,  `ENTRYPOINT` --> `spec.containers.command`, `CMD` --> `spec.containers.args`
  - configure environment variables in applications: under the `spec.containers.env`, we can have name-value pairs for env variables, or using `configmap`, `secret` objects refs
@@ -230,6 +231,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - remember `/etc/systemd/system/etcd.service`
    - remember `/var/lib/kubelet/config.yaml` --> `staticPodPath`
    - ~**remember to redo the 'backup & restore #2' later**~ --> done! ✅
+
 ## Security
  - security primitives: `secure host`, `secure kubernetes`✅: `kube-apiserver` --> authentication & authorization , --> `TLS certificates` used between components in controlplane as well as worker nodes, `network policies` setup for communication between pods across nodes.
  - authentication:
