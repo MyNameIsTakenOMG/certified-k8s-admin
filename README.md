@@ -228,6 +228,8 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - This means that ETCD is set up as a `Stacked ETCD Topology` where the distributed data storage cluster provided by etcd is stacked on top of the cluster formed by the nodes managed by kubeadm that run control plane components.
    - go describe kube-apiserver to find details about controlplane components, `kubectl describe pod <kube api server pod name> -n kube-system` : especially `etcd`
    - remember `ps -ef | grep etcd` to get the running process
+   - remember `etcdctl + <options, such member list>`
+   - remmeber `when using etcdctl, need to specify --cert, --key, --cacert, (optional endpoint)`
    - remember ` scp <path1> <path2>` --> copy files from localhost to a remote server
    - remember `/etc/systemd/system/etcd.service`
    - remember `/var/lib/kubelet/config.yaml` --> `staticPodPath`
