@@ -212,7 +212,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - version number expain:  4.2.1 --> 4 major , 2 minor , 1 patch
    - two steps to upgrade the cluster: 1. upgrade the master node. 2. upgrade the worker nodes
    - strategies for worker nodes: 1.upgrade all worker nodes all together( facing downtime) 2. upgrade one at a time. 3. add new version nodes (using cloud platform to easily perform the operations).
-   - Kubeadm - upgrade: `kubeadm upgrade plane`,  `kubeadm upgrade apply`  **kubeadm doesn't install or upgrade kubelet**
+   - Kubeadm - upgrade: `kubeadm upgrade plan`,  `kubeadm upgrade apply`  **kubeadm doesn't install or upgrade kubelet**
      - `apt-get upgrade -y kubeadm=1.12.0-00`, then `kubeadm upgrade apply v1.12.0` --> master node components version upgraded
      - `apt-get upgrade -y kubelet=1.12.0-00` to upgrade the version of `kubelet` for the master node
      - `systemctl restart kubelet` for the master node
@@ -221,7 +221,8 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - backup and restore:
    - backup candidates:
      - resource configuration: `kubectl get all --all-namespaces -o yaml > all-deploy-services.yaml` or tools like Velero can do the backup for you
-     - ETCD cluster: etcd.service -->  `--data-dir=` the path where all data are stored. `ETCDCTL_API=3 etcdctl snapshot save <path+ 'snapshot.db'>`. `ETCDCTL_API=3 etcdctl snapshot status <path+ 'snapshot.db'>`. For restoring, first `service kube-apiserver stop`, then `ETCDCTL_API=3 etcdctl snapshot restore <path+ 'snapshot.db'> --data-dir=<path for new etcd cluster data>`, then configure etcd.service to use the new path to store data, then `systemctl daemon-reload`, `systemctl restart etcd`, `systemctl restart kube-apiserver`. 
+     - ETCD cluster: etcd.service -->  `--data-dir=` the path where all data are stored. `ETCDCTL_API=3 etcdctl snapshot save <path+ 'snapshot.db'>`. `ETCDCTL_API=3 etcdctl snapshot status <path+ 'snapshot.db'>`. For restoring, first `service kube-apiserver stop`, then `ETCDCTL_API=3 etcdctl snapshot restore <path+ 'snapshot.db'> --data-dir=<path for new etcd cluster data>`, then configure etcd.service to use the new path to store data, then `systemctl daemon-reload`, `systemctl restart etcd`, `systemctl restart kube-apiserver`.
+     - **remember**: `etcdctl snapshot restore /path-to-backup --data-dir=/path-to-new-data-dir` is local operation, we have to go to etcd yaml file to make changes to make new pods to be created from the `/path-to-new-data-dir`
      - Persistent volumes
    - `etcdctl` is a command line client for `etcd`. `export ETCDCTL_API=3`. if you want to take a snapshot of etcd, use: `etcdctl snapshot save -h` and keep a note of the mandatory global options. Since our ETCD database is TLS-Enabled, the following options are mandatory: `--cacert` verify certificates of TLS-enabled secure servers using this CA bundle. `--cert` identify secure client using this TLS certificate file. `--endpoints=[127.0.0.1:2379]` This is the default as ETCD is running on master node and exposed on localhost 2379. `--key` identify secure client using this TLS key file. Similarly use the help option for snapshot restore to see all available options for restoring the backup. `etcdctl snapshot restore -h`
    - This means that ETCD is set up as a `Stacked ETCD Topology` where the distributed data storage cluster provided by etcd is stacked on top of the cluster formed by the nodes managed by kubeadm that run control plane components.
@@ -623,7 +624,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - `kubectl expose deployment nginx --port=80 --target-port=8000` --> create a service based on a deployemnt on port 80, and connect to the containers on port 8000
  - `kubectl run httpd --image=httpd:alpine --port=80 --expose` --> create a service based on a pod using `--expose` option to simplify the process
  - recommend going with the `kubectl expose` command. If you need to specify a node port, generate a definition file using the same command and manually input the nodeport before creating the service.
-
+ - remember : `k exec <pod name> -- <command>` to execute commands on pod 
 
 
 
