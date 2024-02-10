@@ -391,7 +391,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
  - linux networking basics:
    - switching and routing:
      - `ip link`--> check the interface, like `eth0`
-     - `ip addr add <ip cidr> dev <eth0>` --> to persists the change, config `/etc/network/interfaces`
+     - `ip addr add <ip cidr: 192.168.3.2/24> dev <eth0>` --> to persists the change, config `/etc/network/interfaces`
      - `route`
      - `ip route add <cidr> via <ip gateway>`
      - `ip route add <default gateway> via <ip gateway>` --> use for any outside ip addresses
