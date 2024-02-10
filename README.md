@@ -327,7 +327,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - in a `role` object, we can add `resourceName` to specify a resource
    - remember `ps -aux`
  - cluster role and cluster role binding
-   - cluster level resources --> `nodes`, `PV`, `namespaces`, `certificatesigningrequest`
+   - cluster level resources --> `nodes`, `PV`, `namespaces`, `certificatesigningrequest`, `clusterrole`, `clusterrolebinding` (don't belong to any namespaces)
    - if use `cluster role` to specify a `namespace` level resource, then a user can access the resource `across all namespaces`
  - service account
    - a service account is used by machines or applications like monitoring apps not humans
@@ -339,7 +339,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - private repository:
      - first `docker login`
      - then `docker run <full path>`
-     - for kubernetes: `spec.containers.image: <full path>`, then create a `docker-registry` type of `secret` object with `username, password, email,server...` in it, then `spec.imagePullSecrets.name: <secret name>`.
+     - for kubernetes: `spec.containers.image: <full path>`, then create a `docker-registry` type of `secret` object with `username, password, email,server...` in it, then `spec.imagePullSecrets[].name: <secret name>`.
  - docker security:
    - security user: `docker run --user=1000` or dockerfile `USER 1000`
    - linux capabilities: `/usr/include/linux/capbility.h`
@@ -349,13 +349,16 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - `spec.securityContext.runAsUser` or `spec.containers.securityContext.runAsUser`
    - **note:** capabilities can only be supported at container level `spec.containers.securityContext.capabilities[].add:`
    - Run the command: `kubectl exec ubuntu-sleeper -- whoami` and check the user that is running the container.
+   - **note:** `runAsUser` when omitted, meaning the `root` user
  - network policy
    - traffic: ingress/ egress
+   - **note:** by default, all traffic is allowed, unless ingress/egress rules are set
    - network security:
    - `network policy` object use `label`(selectors) to match certain pods
    - `network policy` rules: type(ingress/egress), pods(label selectors), ports
    - no isolation if no network policy
    - **note:** not all the netwoking solutions support network policy
+   - **note:** `ipBlock`, `podSelector`, `namespaceSelector` --> AND, OR
 ## Storage
  - storage in docker
    - types:
