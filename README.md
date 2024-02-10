@@ -366,17 +366,18 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - volume driver plugins: default one is `local`, also some other plugins to create volumes on 3rd party solutions, like `rex-ray, covoy, zure file storage...`, can specify the option `docker run --volume-driver=<the driver name>`
    - file system in docker: `/var/lib/docker/ --> (aufs/, container/, volumes/, volumes/)`
    - `layered architecture`: `image layer`(read only) + extra `container layer`(the lifecycle is synced with the container--read&write) --> `copy on write`(files copied onto `container layer`)
-   - `volume`: `docker create volume <volume name>` --> `/var/lib/docker/volumes/<volume name>`. then run the container with the volume `docker run -v <volume name>:/var/lib/mysql mysql` which is called `volume mount`. **note:** if the volume is not created, then docker will create it for you. and also you can pass a custom full path of you custom which is called `binding mount`. `new way to mount volume: docker run --mount type=bind,source=/custom_path,target=/target_path <container_name>`
+   - `volume`: `docker create volume <volume name>` --> `/var/lib/docker/volumes/<volume name>`. then run the container with the volume `docker run -v <volume name>:/var/lib/mysql mysql` which is called `volume mount`. **note:** if the volume is not created, then docker will create it for you. and also you can pass a custom full path of you custom volume which is called `binding mount`. `new way to mount volume: docker run --mount type=bind,source=/custom_path,target=/target_path <container_name>`
  - Container storage interface (CSI):
      - container runtime interface(CRI)
      - container network interface(CNI)
-     - container storage interface(CSI): a univeral standard (a set of RPCs), allows any orchestrators work with any storage vendor plugins, like AWS EBS,
+     - container storage interface(CSI): a univeral standard (a set of RPCs), allows any orchestrators work with any storage vendor plugins, like AWS EBS
  - volumes:
    - volumes and mounts in k8s side: in pod configuration: `spec.volumes.hostPath.(path,type)`, `spec.containers.volumeMounts.(mountPath,name )` . However, this is not recommended in a multi-node env, because different nodes(servers) may have different data, or using a custom or existing file sharing solutions (like EFS, or EBS (io1)).
  - persistent volumes:
    - a cluster-wide pool of volumes configured by admins, which can be used by users for their apps deployed onto k8s cluster
    - `access mode`: `readOnlyMany`, `readWriteOnce`, `readWriteMany`
    - `capacity.storage`
+   - `hostPath.(path, type)`
    - `hostPath.path`, or `some 3rd party storage solutions`
  - persistent volume claims
    - a pvc is bound to a pv
