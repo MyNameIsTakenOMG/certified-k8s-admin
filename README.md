@@ -647,6 +647,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - jsonpath operators: math operators, `in`, `nin`, `subsetof`, `empty`, `size`. functions: min, max, avg, length, stddev(Provides the standard deviation value of an array of numbers)
   - **lightning lab**
     - `when upgrading the cluster, watch the question, if it is required to make pods run on the controlplane node, if yes, then must check the taints on the controlplane before draining the worker nodes`
+    - `when it comes to the kubeconfig(cluster, context, user), remember the default config file $home/.kube/config`
 
 
 
