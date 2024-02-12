@@ -551,7 +551,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - check service logs:
      - `kubectl logs kube-apiserver-master -n kube-system` --> kubeadm
      - `sudo journalctl -u kube-apiserver` --> native service
- - worker node failuer:
+ - worker node failure:
    - check node status: `kubectl get nodes`, `kubectl describe node <node>`
    - check node: `top`(cpu, mem...), `df -h`(file system)
    - check kubelet status: `service kubelet status`, `sudo journalctl  -u kubelet`
@@ -623,16 +623,30 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
        - use json path query with kubectl command: `kubectl get pods -o=jsonpath='{.items[0].spec.containers[0].image}{"\n"}{...}' `
      - loop - range: '{range .items[*]}{.metadata.name}{"\t"}{.status.capacity.cpu}{"\n"}{end}'
      - json path for custom columns: `kubectl get nodes -o=custom-columns=<column name>:<json path>,<column name2>:<json path2>`
-     - json path for sort: `kubectl get nodes --sort-by=<json path>` (**note:** path starts with the single item in the list)
+     - json path for sort: `kubectl get nodes --sort-by=<json path>` (**note:** path starts with the single item in the list when sorting, .items[*] is implicit when you are sorting a list, so should not make up part of the query. the same as `-o=custom-columns`)
      - **remember:** using double quotes to wrap single quotes when `kubectl ... -o jsonpath="{ ... '*' ... }"`
 ## Filling the gap
  - `kubectl api-resources | grep replicaset` --> check out the details for resource configurations
  - `kubectl expose deployment nginx --port=80 --target-port=8000` --> create a service based on a deployemnt on port 80, and connect to the containers on port 8000
  - `kubectl run httpd --image=httpd:alpine --port=80 --expose` --> create a service based on a pod using `--expose` option to simplify the process
  - recommend going with the `kubectl expose` command. If you need to specify a node port, generate a definition file using the same command and manually input the nodeport before creating the service.
- - remember : `k exec <pod name> -- <command>` to execute commands on pod 
-
-
+ - remember : `k exec <pod name> -- <command>` to execute commands on pod
+ - **kodekloud--install:**
+   - `ip addr show eth0`
+ - **kodekloud--troubleshooting:**
+   - controlplane failure: if a pod is crashed, meaning there's no log, instead, check the events during the launch of the pod using `k describe`, or check both events and logs.
+   - worker node failure: check the node status: `k get nodes or k describe`, then `ssh to the node` and check the `container runtime status`: `service containerd status` or `systemctl status containerd` as well as the `kubelet` service. and also check the logs `sudo journalctl -u kubelet` . for config of kubelet: `/etc/kubernetes/kubelet.conf`, `/var/lib/kubelet/config.yaml`
+   - networking failure:  for cni : `/etc/cni/net.d` , `/opt/cni/`.  also remember to `k describe the configmap`
+ - **other topics:**
+   - `kubectl config view --kubeconfig=/root/my-kube-config -o jsonpath='{...}'`
+   - how to Json Path in kubernetes:
+     - identify the kubectl command
+     - familiarize with json output : `kubectl get pods -o json`
+     - form the json path query: `(kubectl will add $).items[0].spec.containers[0].image`
+     - use json path query with kubectl command: `kubectl get pods -o=jsonpath='{.items[0].spec.containers[0].image}{"\n"}{...}' `
+     - jsonpath operators: math operators, `in`, `nin`, `subsetof`, `empty`, `size`. functions: min, max, avg, length, stddev(Provides the standard deviation value of an array of numbers)
+  - **lightning lab**
+    - `when upgrading the cluster, watch the question, if it is required to make pods run on the controlplane node, if yes, then must check the taints on the controlplane before draining the worker nodes`
 
 
 
