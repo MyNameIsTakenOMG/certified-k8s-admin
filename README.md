@@ -650,7 +650,18 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
     - `when it comes to the kubeconfig(cluster, context, user), remember the default config file $home/.kube/config`
   - **mock tests:**
     - test1: `1st attemp: 28min, 100`
-    - test2: `there is an emptyDir:{} type of volume that will last for the life of the pod`
+    - test2:
+      - `there is an emptyDir:{} type of volume that will last for the life of the pod`
+      - `to upgrade deployment, use kubectl set image`
+      - `under the csr oject example, there are some tips below, one of which is cat *.csr | base64 | tr -d "\n"`
+      - `nginx or httpd image, it will always be 80.`
+      - other ports: `22 - SSH, 53 - DNS, 80 - HTTP, 443 - HTTPS, 3306 - MySQL, 5432 - PostgreSQL, 6379 - Redis`
+      - `DNS for services and pods: for services--> just provide the service name; for pods --> transform the ip address(. replaced with -, such as 1-2-3-4)`
+      - `good to know, creating a pod, there is a --restart option set to always`
+      - `Remember from the lectures that Kubernetes tries to keep a pod in a running state. This means that some command must be running in the pod, else the pod will exit. Kubernetes starts it again and it again exits. The state of the pod will them be "CrashLoopBackOff". Running a sleep command gives the pod something to do so that it remains in the running state.`
+    - test3:
+      - `remember k run test --image=alpine:curl -rm -it -- sh`
+      - `k ***  --kubeconfig=<path-of-custom-config-file>`
 
 
 
