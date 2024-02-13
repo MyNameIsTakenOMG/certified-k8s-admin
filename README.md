@@ -648,7 +648,9 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
   - **lightning lab**
     - `when upgrading the cluster, watch the question, if it is required to make pods run on the controlplane node, if yes, then must check the taints on the controlplane before draining the worker nodes`
     - `when it comes to the kubeconfig(cluster, context, user), remember the default config file $home/.kube/config`
-
+  - **mock tests:**
+    - test1: `1st attemp: 28min, 100`
+    - test2: `there is an emptyDir:{} type of volume that will last for the life of the pod`
 
 
 
