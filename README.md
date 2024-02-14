@@ -169,9 +169,12 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
 
 ## Logging and Monitoring
  - monitor cluster components
-   - monitor: `Metrics Server`: one instance per cluster, and in-memory solution. in `kubelet`, there's sub component `container advisor` used to gather metrics from pods and then make them available for `Metrics Server`. To install `Metrics Server`(minikube or other...)... To view metrics, `kubectl top node`, `kubectl top pod`
+   - monitor: `Metrics Server`: one instance per cluster, and in-memory solution. in `kubelet`, there's sub component `container advisor` used to gather metrics from pods and then make them available for `Metrics Server`. To install `Metrics Server`(minikube or other...)... To view metrics, `kubectl top node`, `kubectl top pod --containers`
  - managing application logs: `kubectl logs -f <pod name> <explicitly specify container name if there are more than one>`
-
+ - Probes:
+   - liveness probe: mainly responsible for dead locks --> restart the `container`
+   - readiness probe: tell if a `pod` is ready for taking traffic
+   - startup probe: tell if the `app` inside the container has started
 ## Application LifeCycle Management
  - rolling updates and rollbacks
    - rollout and versioning: when creating a new `deployment`, a new `rollout` gets triggered which will create a new `revision`, which helps us keep track of the changes made to our deployment and enables us to roll back to the previous version if needed.
@@ -662,6 +665,15 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
     - test3:
       - `remember k run test --image=alpine:curl -rm -it -- sh`
       - `k ***  --kubeconfig=<path-of-custom-config-file>`
+      - `k config get-contexts -o name`
+      - `cat .kube/config | grep -i current-context | sed 's/current-context: //'`
+      - `sed-- stream editor:  -n(prevent from printing twice), -e(expression multiple times) s/***/***/`
+      - `sh -c(command) <command> `
+      - `k top node --> show the node usage (metrics-server); k top pods --containers --> show the pods and containers usage`
+      - `static-pod has special suffix --> --<node name>`
+      - `the way to stop static-pod is to move away the according manifest file from the path /etc/kubernetes/manifests`
+      - `k api-resources --> get the resources names`
+      - `k auth can-i <action> <resource> -n <namespace> --as=system:serviceaccount:<namespace>:<serviceaccount>`
 
 
 
