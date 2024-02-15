@@ -694,7 +694,11 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
       - `normally, for kubelet, all the certs, keys are under the path: /var/lib/kubelet/pki`
       - `remember, when it comes to network policy, try to test out connections first, or it may not be able to test out after your network policy is applied`
       - `kubectl cluster-info dump | grep -- --etcd`
-
+    - cka question bank:
+      - `k set image ...  --record will record the updates`
+      - `k cordon <node>`
+      - `remember labels <--> selectors for replicasets, daemonset, deployment`
+      - `linux command tac is called cat backward, used for reversing --> --sort-by `
 
 
 
