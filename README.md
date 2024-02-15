@@ -665,6 +665,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
     - test3:
       - `remember k run test --image=alpine:curl -rm -it -- sh`
       - `k ***  --kubeconfig=<path-of-custom-config-file>`
+    - killersh tests:
       - `k config get-contexts -o name`
       - `cat .kube/config | grep -i current-context | sed 's/current-context: //'`
       - `sed-- stream editor:  -n(prevent from printing twice), -e(expression multiple times) s/***/***/`
@@ -674,6 +675,25 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
       - `the way to stop static-pod is to move away the according manifest file from the path /etc/kubernetes/manifests`
       - `k api-resources --> get the resources names`
       - `k auth can-i <action> <resource> -n <namespace> --as=system:serviceaccount:<namespace>:<serviceaccount>`
+      - `anti-affinity makes sure that pods with the same labels will not run on the same node, which can be used to mimick the behaviour of daemonset. Also the property: topologyKey is required, which is used for denoting the nodes in the cluster`
+      - `expose pod information to containers, like Node_Name, etc`
+      - `kube-apiserver is responsible for managing service cidr --> --service-cluster-ip-range`
+      - `for cni, /etc/cni/net.d/net-script.conflist; /opt/cni/bin/net-script.sh`
+      - `for kubelet, two configuration files: /var/lib/kubelet/config; /etc/kubernetes/kubelet.conf`
+      - `k get events`
+      - `crictl stop <container_id>, crictl rm <container_id>`
+      - `crictl inspect <container_id>`
+      - `crictl logs <container_id>`
+      - `to fetch all namespaced resourced--> k api-resources --namespaced -o name`
+      - `check troubleshooting part--worker node, and remember the command: whereis <process_name: kubelet>`
+      - `don't forget systemctl daemon-reload; systemctl restart <process_name>`
+      - `kubeadm join, kubeadm token`
+      - `for openssl, to view certificates or csr, openssl x509(req) -in <cert_path> -text -noout`
+      - `for cfssl, to view certificates or csr, cfssl certinfo -cert(-csr) <cert_path>`
+      - `for kubeadm, it also can view the certificates, using kubeadm certs check-expiration`
+      - `normally, for kubelet, all the certs, keys are under the path: /var/lib/kubelet/pki`
+      - `remember, when it comes to network policy, try to test out connections first, or it may not be able to test out after your network policy is applied`
+      - `kubectl cluster-info dump | grep -- --etcd`
 
 
 
