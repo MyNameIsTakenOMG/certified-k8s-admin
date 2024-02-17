@@ -698,9 +698,9 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
       - `k set image ...  --record will record the updates`
       - `k cordon <node>`
       - `remember labels <--> selectors for replicasets, daemonset, deployment`
-      - `linux command tac is called cat backward, used for reversing --> --sort-by `
-
-
+      - `linux command tac is called cat backward, used for reversing --> --sort-by ` 
+ - My killer sh:
+   - `k api-resources --namespaced -o name` : the option --> `--namespaced`
 
 
 
