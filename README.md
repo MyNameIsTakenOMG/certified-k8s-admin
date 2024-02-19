@@ -701,7 +701,9 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
       - `linux command tac is called cat backward, used for reversing --> --sort-by ` 
  - My killer sh:
    - `k api-resources --namespaced -o name` : the option --> `--namespaced`
-
+   - extra questions:
+     - `k -n project-c13 get pod -o jsonpath="{range .items[*]} {.metadata.name}{.spec.containers[*].resources}{'\n'}"`. When available cpu or memory resources on the nodes reach their limit, Kubernetes will look for Pods that are using more resources than they requested. These will be the first candidates for termination. If some Pods containers have no resource requests/limits set, then by default those are considered to use more than requested. A good practice is to always set resource requests and limits. If you don't know the values your containers should have you can find this out using metric tools like Prometheus. You can also use `kubectl top pod` or even `kubectl exec` into the container and use top and similar tools. or simply `k describe deploy | grep -i cpu`
+     - 
 
 
 
