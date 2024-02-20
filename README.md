@@ -703,7 +703,13 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - `k api-resources --namespaced -o name` : the option --> `--namespaced`
    - extra questions:
      - `k -n project-c13 get pod -o jsonpath="{range .items[*]} {.metadata.name}{.spec.containers[*].resources}{'\n'}"`. When available cpu or memory resources on the nodes reach their limit, Kubernetes will look for Pods that are using more resources than they requested. These will be the first candidates for termination. If some Pods containers have no resource requests/limits set, then by default those are considered to use more than requested. A good practice is to always set resource requests and limits. If you don't know the values your containers should have you can find this out using metric tools like Prometheus. You can also use `kubectl top pod` or even `kubectl exec` into the container and use top and similar tools. or simply `k describe deploy | grep -i cpu`
-     - 
+     - From inside the pod, kubernetes api server can be accessible directly on "https://kubernetes.default". By default it uses the "default service account" for accessing the api server.
+     - k -n project-hamster exec tmp-api-contact -it -- sh
+     - TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --> define an env
+     - curl -k https://kubernetes.default/api/v1/secrets -H "Authorization: Bearer ${TOKEN}" --> use an env
+   - preview questions:
+     - Check kube-proxy is creating iptables rules: `ssh cluster1-controlplane1 iptables-save | grep p2-service`
+     - when changing the `Service CIDR` in the cluster, remember modify the manifests files for `kube-apiserver` and `kube-controller-manager`
 
 
 
