@@ -710,6 +710,7 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
    - preview questions:
      - Check kube-proxy is creating iptables rules: `ssh cluster1-controlplane1 iptables-save | grep p2-service`
      - when changing the `Service CIDR` in the cluster, remember modify the manifests files for `kube-apiserver` and `kube-controller-manager`
+     - `remember to check kubelet config file to see the staticPodPath if you are required to create a static pod on a worker node`
 
 
 
