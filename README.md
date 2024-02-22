@@ -709,9 +709,12 @@ In k8s version 1.19+, we can specify the --replicas option to create a deploymen
      - curl -k https://kubernetes.default/api/v1/secrets -H "Authorization: Bearer ${TOKEN}" --> use an env
    - preview questions:
      - Check kube-proxy is creating iptables rules: `ssh cluster1-controlplane1 iptables-save | grep p2-service`
-     - when changing the `Service CIDR` in the cluster, remember modify the manifests files for `kube-apiserver` and `kube-controller-manager`
+     - when changing the `Service CIDR` in the cluster, remember modify the both manifests files for `kube-apiserver` and `kube-controller-manager`
      - `remember to check kubelet config file to see the staticPodPath if you are required to create a static pod on a worker node`
      - Selects all pods in all namespaces (namespaceSelector: {}). Note: Dropping all selectors from the spec.ingress.from item has the same effect of matching all pods in all namespaces.
+     - remember `pvc is a namespace wide object`
+     - `topologySpreadConstraints` and `podAntiAffinity`
+     - 
 
 
 
